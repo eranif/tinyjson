@@ -33,10 +33,17 @@ void get_file_contents(const char* filename, std::string* content)
 
 int main(int argc, char** argv)
 {
+    if(argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " </path/to/lexers.json>" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::string lexers_json_file = argv[1];
+
     tinyjson::Element root;
     std::cout << "reading file..." << std::endl;
     std::string content;
-    get_file_contents(R"(/home/eran/devl/tinyjson/build-debug/lexers.json)", &content);
+    get_file_contents(lexers_json_file.c_str(), &content);
     std::cout << "success" << std::endl;
 
     std::cout << "json file size: " << content.length() / 1024 / 1024 << "MiB" << std::endl;
