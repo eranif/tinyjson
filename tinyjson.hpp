@@ -131,6 +131,9 @@ public:
     const Element& operator[](const char* index) const;
     Element& operator[](const char* index);
 
+    FLATTEN_INLINE const Element& operator[](const std::string& index) const { return operator[](index.c_str()); }
+    FLATTEN_INLINE Element& operator[](const std::string& index) { return operator[](index.c_str()); }
+
     /// access element by position
     const Element& operator[](size_t index) const;
     Element& operator[](size_t index);
@@ -142,11 +145,20 @@ public:
     FLATTEN_INLINE std::vector<Element>::iterator end() { return m_children.end(); }
 
     FLATTEN_INLINE std::vector<Element>::size_type size() const { return m_children.size(); }
+    /// return true if this Element has no children
     FLATTEN_INLINE bool empty() const { return m_children.empty(); }
+    /// delete all children
     FLATTEN_INLINE void clear()
     {
         m_children.clear();
         m_elements_map.clear();
+    }
+    /// return true if this Element contains a child with a given name
+    FLATTEN_INLINE bool contains(const char* name) const { return m_elements_map.count(std::string_view(name)) > 0; }
+    /// return true if this Element contains a child with a given name
+    FLATTEN_INLINE bool contains(const std::string& name) const
+    {
+        return m_elements_map.count(std::string_view(name)) > 0;
     }
 
     // write API
