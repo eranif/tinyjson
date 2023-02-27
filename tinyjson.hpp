@@ -143,7 +143,11 @@ public:
 
     FLATTEN_INLINE std::vector<Element>::size_type size() const { return m_children.size(); }
     FLATTEN_INLINE bool empty() const { return m_children.empty(); }
-    FLATTEN_INLINE void clear() { m_children.clear(); }
+    FLATTEN_INLINE void clear()
+    {
+        m_children.clear();
+        m_elements_map.clear();
+    }
 
     // write API
 
