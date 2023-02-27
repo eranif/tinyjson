@@ -93,7 +93,9 @@ public:
 
     // "as" methods
     // element.as<std::string>
-    FLATTEN_INLINE bool as_str(std::string_view* val) const
+
+    template<typename T>
+    FLATTEN_INLINE bool as_str(T* val) const
     {
         if(!is_string()) {
             return false;
@@ -103,13 +105,14 @@ public:
         return true;
     }
 
-    FLATTEN_INLINE bool as_double(double* val) const
+    template<typename T>
+    FLATTEN_INLINE bool as_number(T* val) const
     {
         if(!is_number()) {
             return false;
         }
 
-        *val = m_value.number;
+        *val = static_cast<T>(m_value.number);
         return true;
     }
 
@@ -256,7 +259,7 @@ public:
         } break;
         case ElementKind::T_NUMBER: {
             double d;
-            as_double(&d);
+            as_number(&d);
             ss << d << suffix(last_child);
         } break;
         case ElementKind::T_TRUE: {
