@@ -97,9 +97,10 @@ public:
     /// return the value as a string
     /// @param val [output]
     /// @param default_value default value to return in case of an error
-    template <typename T> FLATTEN_INLINE bool as_str(T* val, const T& default_value = {}) const
+    template <typename T> FLATTEN_INLINE bool as_str(T* val, const char* default_value = nullptr) const
     {
         if(!is_string()) {
+            *val = default_value;
             return false;
         }
 
@@ -110,9 +111,10 @@ public:
     /// return the value as a number.
     /// @param val [output]
     /// @param default_value default value to return in case of an error
-    template <typename T> FLATTEN_INLINE bool as_number(T* val, const T& default_value = {}) const
+    template <typename T> FLATTEN_INLINE bool as_number(T* val, int default_value = -1) const
     {
         if(!is_number()) {
+            *val = static_cast<T>(default_value);
             return false;
         }
 
