@@ -97,7 +97,7 @@ public:
     /// return the value as a string
     /// @param val [output]
     /// @param default_value default value to return in case of an error
-    template <typename T> FLATTEN_INLINE bool as_str(T* val, const char* default_value = nullptr) const
+    template <typename T> FLATTEN_INLINE bool as_str(T* val, const char* default_value = "") const
     {
         if(!is_string()) {
             *val = default_value;
