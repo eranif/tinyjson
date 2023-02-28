@@ -94,8 +94,10 @@ public:
     // "as" methods
     // element.as<std::string>
 
-    template<typename T>
-    FLATTEN_INLINE bool as_str(T* val) const
+    /// return the value as a string
+    /// @param val [output]
+    /// @param default_value default value to return in case of an error
+    template <typename T> FLATTEN_INLINE bool as_str(T* val, const T& default_value = {}) const
     {
         if(!is_string()) {
             return false;
@@ -105,8 +107,10 @@ public:
         return true;
     }
 
-    template<typename T>
-    FLATTEN_INLINE bool as_number(T* val) const
+    /// return the value as a number.
+    /// @param val [output]
+    /// @param default_value default value to return in case of an error
+    template <typename T> FLATTEN_INLINE bool as_number(T* val, const T& default_value = {}) const
     {
         if(!is_number()) {
             return false;
@@ -116,7 +120,10 @@ public:
         return true;
     }
 
-    FLATTEN_INLINE bool as_bool(bool* val) const
+    /// return the value as a bool
+    /// @param val [output]
+    /// @param default_value default value to return in case of an error
+    FLATTEN_INLINE bool as_bool(bool* val, bool default_value = false) const
     {
         switch(m_kind) {
         case ElementKind::T_FALSE:
