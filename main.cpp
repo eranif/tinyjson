@@ -98,6 +98,9 @@ int main(int argc, char** argv)
     lexers_array.add_array_object().add_property("name", "second_lexer\r\n").add_property("score", 50);
     lexers_array[1].add_property("value", "a good value");
 
+    std::string val = lexers_array[1]["value"].to_str<std::string>();
+    std::cout << val << std::endl;
+
     // loop and print each lexer
     size_t index = 0;
     for(const auto& lexer : lexers_array) {

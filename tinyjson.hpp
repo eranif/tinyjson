@@ -108,7 +108,15 @@ public:
         return true;
     }
 
-    /// return the value as a number.
+    /// return the value as a number. return the `default_value` on error
+    template <typename T> FLATTEN_INLINE T&& to_str(const char* default_value = "") const
+    {
+        T value;
+        as_str(&value, default_value);
+        return std::move(value);
+    }
+
+    /// return the value as a number. return false on error
     /// @param val [output]
     /// @param default_value default value to return in case of an error
     template <typename T> FLATTEN_INLINE bool as_number(T* val, int default_value = -1) const
@@ -120,6 +128,14 @@ public:
 
         *val = static_cast<T>(m_value.number);
         return true;
+    }
+
+    /// return the value as a number. return the `default_value` on error
+    template <typename T> FLATTEN_INLINE T to_number(int default_value = -1) const
+    {
+        T value;
+        as_number(&value, default_value);
+        return value;
     }
 
     /// return the value as a bool
@@ -137,6 +153,14 @@ public:
         default:
             return false;
         }
+    }
+
+    /// return the value as a bool. return the `default_value` on error
+    FLATTEN_INLINE bool to_bool(bool default_value = false) const
+    {
+        bool v;
+        as_bool(&v, default_value);
+        return v;
     }
 
     /// access element by name
