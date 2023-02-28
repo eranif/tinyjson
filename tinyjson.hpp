@@ -69,7 +69,12 @@ private:
     Element& add_property_internal(const std::string& name);
 
 public:
-    static bool parse(const char* content, Element* root);
+    /// construct json from string
+    static bool parse(const std::string& content, Element* root);
+
+    /// construct json from file
+    static bool parse_file(const std::string& path, Element* root);
+
     static bool create_array(Element* arr);
     static bool create_object(Element* obj);
 

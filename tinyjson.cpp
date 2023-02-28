@@ -1,6 +1,8 @@
 #include "tinyjson.hpp"
 
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <sstream>
 #include <utility>
@@ -399,15 +401,45 @@ bool Element::create_object(Element* obj)
     return true;
 }
 
-bool Element::parse(const char* content, Element* root)
+bool Element::parse(const std::string& content, Element* root)
 {
-    if(!Element::parse_value(root, skip(content))) {
+    if(!Element::parse_value(root, skip(content.c_str()))) {
         return false;
     }
 
     // index the elements
     root->index_elements();
     return true;
+}
+
+bool Element::parse_file(const std::string& path, Element* root)
+{
+    // read the file content
+    std::string content;
+    FILE* file = fopen(path.c_str(), "rb");
+    // Check if there was an error.
+    if(file == nullptr) {
+        return false;
+    }
+
+    // Get the file length
+    fseek(file, 0, SEEK_END);
+    auto length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    content.resize(length);
+    // Set the contents of the string.
+    size_t bytes = fread(content.data(), sizeof(char), length, file);
+
+    // no need for the file pointer any more, close it
+    fclose(file);
+
+    // did we read all the file?
+    if(bytes != length) {
+        return false;
+    }
+
+    return parse(content, root);
 }
 
 thread_local Element null_element;
