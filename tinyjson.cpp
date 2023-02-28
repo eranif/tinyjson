@@ -184,8 +184,12 @@ const char* Element::parse_string(tinyjson::Element* item, const char* str)
 
 Element::~Element()
 {
+    m_elements_map.clear();
+    m_children.clear();
+
     if(m_kind == ElementKind::T_STRING && m_value.str) {
         free(m_value.str);
+        m_value.str = nullptr;
     }
 }
 
