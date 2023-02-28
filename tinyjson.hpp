@@ -150,6 +150,9 @@ public:
     const Element& operator[](size_t index) const;
     Element& operator[](size_t index);
 
+    FLATTEN_INLINE const Element& operator[](int index) const { return operator[](static_cast<size_t>(index)); }
+    FLATTEN_INLINE Element& operator[](int index) { return operator[](static_cast<size_t>(index)); }
+
     /// STL like api, so we can have `for` loops
     FLATTEN_INLINE std::vector<Element>::const_iterator begin() const { return m_children.begin(); }
     FLATTEN_INLINE std::vector<Element>::iterator begin() { return m_children.begin(); }
