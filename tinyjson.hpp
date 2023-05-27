@@ -114,7 +114,7 @@ public:
     }
 
     /// return the value as a number. return the `default_value` on error
-    template <typename T> FLATTEN_INLINE T&& to_str(const char* default_value = "") const
+    template <typename T> FLATTEN_INLINE T to_str(const char* default_value = "") const
     {
         T value;
         as_str(&value, default_value);

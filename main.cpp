@@ -25,7 +25,7 @@ void get_file_contents(const char* filename, std::string* content)
     fseek(file, 0, SEEK_SET);
     content->resize(length);
     // Set the contents of the string.
-    size_t bytes = fread(content->data(), sizeof(char), length, file);
+    size_t bytes = fread((void*)content->data(), sizeof(char), length, file);
     (void)bytes;
     // Close the file.
     fclose(file);

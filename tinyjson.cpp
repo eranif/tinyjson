@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <string_view>
 #include <utility>
 
 namespace tinyjson
@@ -75,8 +76,8 @@ std::string& escape_string(const std::string_view& str, std::string* escaped)
                 *ptr2++ = 't';
                 break;
             default:
-                snprintf(ptr2, 5, "u%04x", token);
-                ptr2 += 5;
+                snprintf(ptr2, 6, "u%04x", token);
+                ptr2 += 6;
                 break; /* escape and print */
             }
         }
