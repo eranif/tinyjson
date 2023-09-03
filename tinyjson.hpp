@@ -13,43 +13,43 @@ namespace tinyjson
 {
 #define FLATTEN_INLINE inline __attribute__((flatten))
 
-enum class ElementKind { T_INVALID, T_TRUE, T_FALSE, T_STRING, T_NUMBER, T_OBJECT, T_ARRAY, T_NULL };
+enum class element_kind { T_INVALID, T_TRUE, T_FALSE, T_STRING, T_NUMBER, T_OBJECT, T_ARRAY, T_NULL };
 
 std::string& escape_string(const std::string_view& str, std::string* escaped);
 
-union Value {
+union element_value {
     char* str;
     double number;
     bool boolean;
 };
 
-struct Element {
+struct element {
 private:
     /// the element's kind
-    ElementKind m_kind = ElementKind::T_INVALID;
+    element_kind m_kind = element_kind::T_INVALID;
     /// if the Element has a name -> its here
     std::string m_property_name;
     /// the element's value
-    Value m_value;
+    element_value m_value;
     /// list of all children
-    std::vector<Element> m_children;
+    std::vector<element> m_children;
     /// provide `O(1)` access for elements by name
-    std::unordered_map<std::string_view, Element*> m_elements_map;
+    std::unordered_map<std::string_view, element*> m_elements_map;
 
 private:
-    static const char* parse_string(tinyjson::Element* item, const char* str);
-    static const char* parse_number(tinyjson::Element* item, const char* num);
-    static const char* parse_array(tinyjson::Element* item, const char* value);
-    static const char* parse_object(tinyjson::Element* item, const char* value);
-    static const char* parse_value(tinyjson::Element* item, const char* value);
+    static const char* parse_string(tinyjson::element* item, const char* str);
+    static const char* parse_number(tinyjson::element* item, const char* num);
+    static const char* parse_array(tinyjson::element* item, const char* value);
+    static const char* parse_object(tinyjson::element* item, const char* value);
+    static const char* parse_value(tinyjson::element* item, const char* value);
 
     void index_elements();
 
 private:
     /// append new item to the end of the children list and return a reference to it
-    FLATTEN_INLINE Element& append_new()
+    FLATTEN_INLINE element& append_new()
     {
-        m_children.emplace_back(Element{});
+        m_children.emplace_back(element{});
         return m_children.back();
     }
 
@@ -66,35 +66,35 @@ private:
     /// and return it. This method does not set the value
     /// but it does add the newly added item to the index
     /// table
-    Element& add_property_internal(const std::string& name);
+    element& add_property_internal(const std::string& name);
 
 public:
     /// construct json from string
-    static bool parse(const std::string& content, Element* root);
+    static bool parse(const std::string& content, element* root);
 
     /// construct json from file
-    static bool parse_file(const std::string& path, Element* root);
+    static bool parse_file(const std::string& path, element* root);
 
-    static bool create_array(Element* arr);
-    static bool create_object(Element* obj);
+    static bool create_array(element* arr);
+    static bool create_object(element* obj);
 
-    Element();
+    element();
 
     // no copy constructor is allowed, only `move`
-    Element(Element& other) = delete;
+    element(element& other) = delete;
 
-    Element(Element&& other);
-    ~Element();
+    element(element&& other);
+    ~element();
 
     // Check functions
-    FLATTEN_INLINE bool is_array() const { return m_kind == ElementKind::T_ARRAY; }
-    FLATTEN_INLINE bool is_object() const { return m_kind == ElementKind::T_OBJECT; }
-    FLATTEN_INLINE bool is_string() const { return m_kind == ElementKind::T_STRING; }
-    FLATTEN_INLINE bool is_number() const { return m_kind == ElementKind::T_NUMBER; }
-    FLATTEN_INLINE bool is_true() const { return m_kind == ElementKind::T_TRUE; }
-    FLATTEN_INLINE bool is_false() const { return m_kind == ElementKind::T_FALSE; }
-    FLATTEN_INLINE bool is_null() const { return m_kind == ElementKind::T_NULL; }
-    FLATTEN_INLINE bool is_ok() const { return m_kind != ElementKind::T_INVALID; }
+    FLATTEN_INLINE bool is_array() const { return m_kind == element_kind::T_ARRAY; }
+    FLATTEN_INLINE bool is_object() const { return m_kind == element_kind::T_OBJECT; }
+    FLATTEN_INLINE bool is_string() const { return m_kind == element_kind::T_STRING; }
+    FLATTEN_INLINE bool is_number() const { return m_kind == element_kind::T_NUMBER; }
+    FLATTEN_INLINE bool is_true() const { return m_kind == element_kind::T_TRUE; }
+    FLATTEN_INLINE bool is_false() const { return m_kind == element_kind::T_FALSE; }
+    FLATTEN_INLINE bool is_null() const { return m_kind == element_kind::T_NULL; }
+    FLATTEN_INLINE bool is_ok() const { return m_kind != element_kind::T_INVALID; }
 
     // "as" methods
     // element.as<std::string>
@@ -149,10 +149,10 @@ public:
     FLATTEN_INLINE bool as_bool(bool* val, bool default_value = false) const
     {
         switch(m_kind) {
-        case ElementKind::T_FALSE:
+        case element_kind::T_FALSE:
             *val = false;
             return true;
-        case ElementKind::T_TRUE:
+        case element_kind::T_TRUE:
             *val = true;
             return true;
         default:
@@ -169,26 +169,26 @@ public:
     }
 
     /// access element by name
-    const Element& operator[](const char* index) const;
-    Element& operator[](const char* index);
+    const element& operator[](const char* index) const;
+    element& operator[](const char* index);
 
-    FLATTEN_INLINE const Element& operator[](const std::string& index) const { return operator[](index.c_str()); }
-    FLATTEN_INLINE Element& operator[](const std::string& index) { return operator[](index.c_str()); }
+    FLATTEN_INLINE const element& operator[](const std::string& index) const { return operator[](index.c_str()); }
+    FLATTEN_INLINE element& operator[](const std::string& index) { return operator[](index.c_str()); }
 
     /// access element by position
-    const Element& operator[](size_t index) const;
-    Element& operator[](size_t index);
+    const element& operator[](size_t index) const;
+    element& operator[](size_t index);
 
-    FLATTEN_INLINE const Element& operator[](int index) const { return operator[](static_cast<size_t>(index)); }
-    FLATTEN_INLINE Element& operator[](int index) { return operator[](static_cast<size_t>(index)); }
+    FLATTEN_INLINE const element& operator[](int index) const { return operator[](static_cast<size_t>(index)); }
+    FLATTEN_INLINE element& operator[](int index) { return operator[](static_cast<size_t>(index)); }
 
     /// STL like api, so we can have `for` loops
-    FLATTEN_INLINE std::vector<Element>::const_iterator begin() const { return m_children.begin(); }
-    FLATTEN_INLINE std::vector<Element>::iterator begin() { return m_children.begin(); }
-    FLATTEN_INLINE std::vector<Element>::const_iterator end() const { return m_children.end(); }
-    FLATTEN_INLINE std::vector<Element>::iterator end() { return m_children.end(); }
+    FLATTEN_INLINE std::vector<element>::const_iterator begin() const { return m_children.begin(); }
+    FLATTEN_INLINE std::vector<element>::iterator begin() { return m_children.begin(); }
+    FLATTEN_INLINE std::vector<element>::const_iterator end() const { return m_children.end(); }
+    FLATTEN_INLINE std::vector<element>::iterator end() { return m_children.end(); }
 
-    FLATTEN_INLINE std::vector<Element>::size_type size() const { return m_children.size(); }
+    FLATTEN_INLINE std::vector<element>::size_type size() const { return m_children.size(); }
     /// return true if this Element has no children
     FLATTEN_INLINE bool empty() const { return m_children.empty(); }
     /// delete all children
@@ -209,71 +209,71 @@ public:
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, double value);
+    element& add_property(const std::string& name, double value);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, int value);
+    element& add_property(const std::string& name, int value);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, long value);
+    element& add_property(const std::string& name, long value);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, size_t value);
+    element& add_property(const std::string& name, size_t value);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, const std::string& value);
+    element& add_property(const std::string& name, const std::string& value);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, const char* value);
+    element& add_property(const std::string& name, const char* value);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property(const std::string& name, bool b);
+    element& add_property(const std::string& name, bool b);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_element(Element&& elem);
+    element& add_element(element&& elem);
 
     /// add new property to the `this`. return ref to `this`
     /// @return reference to `this`
-    Element& add_property_null(const std::string& name);
+    element& add_property_null(const std::string& name);
 
     /// add new array with a given name. return the newly added Element
     /// @return the newly added object
-    Element& add_array(const std::string& name);
+    element& add_array(const std::string& name);
 
     /// add new object with a given name. return the newly added Element
     /// @return the newly added object
-    Element& add_object(const std::string& name);
+    element& add_object(const std::string& name);
 
     /// add an Element of type string to the array, return the array
     /// @return reference to `this`
-    Element& add_array_item(const std::string& value);
+    element& add_array_item(const std::string& value);
 
     /// add an Element of type string to the array, return the array
     /// @return reference to `this`
-    Element& add_array_item(const char* value);
+    element& add_array_item(const char* value);
 
     /// add an Element of type double to the array, return the array
     /// @return reference to `this`
-    Element& add_array_item(double value);
+    element& add_array_item(double value);
 
     /// add an Element of type bool to the array, return the array
     /// @return reference to `this`
-    Element& add_array_item(bool b);
+    element& add_array_item(bool b);
 
     /// add an Element of type string to the array, return the array
     /// @return reference to `this`
-    Element& add_array_item(Element elem);
+    element& add_array_item(element elem);
 
     /// create new empty Element of type object and append it to the end of the array
     /// @return the newly added object
-    Element& add_array_object();
+    element& add_array_object();
 
     FLATTEN_INLINE const char* property_name() const
     {
@@ -292,29 +292,29 @@ public:
         }
 
         switch(m_kind) {
-        case ElementKind::T_STRING: {
+        case element_kind::T_STRING: {
             std::string_view sv;
             as_str(&sv);
             std::string escaped_str;
             ss << escape_string(sv, &escaped_str) << suffix(last_child);
         } break;
-        case ElementKind::T_NUMBER: {
+        case element_kind::T_NUMBER: {
             double d;
             as_number(&d);
             ss << d << suffix(last_child);
         } break;
-        case ElementKind::T_TRUE: {
+        case element_kind::T_TRUE: {
             ss << "true" << suffix(last_child);
         } break;
-        case ElementKind::T_FALSE: {
+        case element_kind::T_FALSE: {
             ss << "false" << suffix(last_child);
             ;
         } break;
-        case ElementKind::T_NULL: {
+        case element_kind::T_NULL: {
             ss << "null" << suffix(last_child);
             ;
         } break;
-        case ElementKind::T_OBJECT: {
+        case element_kind::T_OBJECT: {
             if(m_children.empty()) {
                 ss << "{}" << suffix(last_child);
             }
@@ -325,7 +325,7 @@ public:
             }
             ss << indent << "}" << suffix(last_child);
         } break;
-        case ElementKind::T_ARRAY: {
+        case element_kind::T_ARRAY: {
             if(m_children.empty()) {
                 ss << "[]" << suffix(last_child);
             }
@@ -336,13 +336,13 @@ public:
             }
             ss << indent << "]" << suffix(last_child);
         } break;
-        case ElementKind::T_INVALID:
+        case element_kind::T_INVALID:
             break;
         }
     }
 };
 
-FLATTEN_INLINE void to_string(const Element& root, std::stringstream& ss) { root.to_string(ss, 0, true); }
+FLATTEN_INLINE void to_string(const element& root, std::stringstream& ss) { root.to_string(ss, 0, true); }
 
 } // namespace tinyjson
 

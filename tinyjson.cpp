@@ -86,7 +86,7 @@ std::string& escape_string(const std::string_view& str, std::string* escaped)
     return *escaped;
 }
 
-const char* Element::parse_string(tinyjson::Element* item, const char* str)
+const char* element::parse_string(tinyjson::element* item, const char* str)
 {
     const char* ptr = str + 1;
     char* ptr2;
@@ -179,28 +179,28 @@ const char* Element::parse_string(tinyjson::Element* item, const char* str)
         ptr++;
 
     item->m_value.str = out;
-    item->m_kind = tinyjson::ElementKind::T_STRING;
+    item->m_kind = tinyjson::element_kind::T_STRING;
     return ptr;
 }
 
-Element::~Element()
+element::~element()
 {
     m_elements_map.clear();
     m_children.clear();
 
-    if(m_kind == ElementKind::T_STRING && m_value.str) {
+    if(m_kind == element_kind::T_STRING && m_value.str) {
         free(m_value.str);
         m_value.str = nullptr;
     }
 }
 
-Element::Element() { memset(&m_value, 0, sizeof(m_value)); }
-Element::Element(Element&& other)
+element::element() { memset(&m_value, 0, sizeof(m_value)); }
+element::element(element&& other)
 {
     m_kind = other.m_kind;
     m_property_name = std::move(other.m_property_name);
     m_value = other.m_value;
-    if(other.m_kind == ElementKind::T_STRING) {
+    if(other.m_kind == element_kind::T_STRING) {
         // ensure that no double free is occured
         other.m_value.str = nullptr;
     }
@@ -209,7 +209,7 @@ Element::Element(Element&& other)
 }
 
 /* Parse the input text to generate a number, and populate the result into item. */
-const char* Element::parse_number(tinyjson::Element* item, const char* num)
+const char* element::parse_number(tinyjson::element* item, const char* num)
 {
     double n = 0, sign = 1, scale = 0;
     int subscale = 0, signsubscale = 1;
@@ -242,19 +242,19 @@ const char* Element::parse_number(tinyjson::Element* item, const char* num)
 
     n = sign * n * pow(10.0, (scale + subscale * signsubscale)); /* number = +/- number.fraction * 10^+/- exponent */
 
-    item->m_kind = tinyjson::ElementKind::T_NUMBER;
+    item->m_kind = tinyjson::element_kind::T_NUMBER;
     item->m_value.number = n;
     return num;
 }
 
 /* Build an array from input text. */
-const char* Element::parse_array(tinyjson::Element* item, const char* value)
+const char* element::parse_array(tinyjson::element* item, const char* value)
 {
     if(*value != '[') {
         return nullptr;
     } /* not an array! */
 
-    item->m_kind = tinyjson::ElementKind::T_ARRAY;
+    item->m_kind = tinyjson::element_kind::T_ARRAY;
     value = skip(value + 1);
     if(*value == ']')
         return value + 1; /* empty array. */
@@ -279,13 +279,13 @@ const char* Element::parse_array(tinyjson::Element* item, const char* value)
 }
 
 /* Build an object from the text. */
-const char* Element::parse_object(tinyjson::Element* item, const char* value)
+const char* element::parse_object(tinyjson::element* item, const char* value)
 {
     if(*value != '{') {
         return nullptr;
     } // not an object
 
-    item->m_kind = tinyjson::ElementKind::T_OBJECT;
+    item->m_kind = tinyjson::element_kind::T_OBJECT;
     value = skip(value + 1);
     if(*value == '}')
         return value + 1; // empty object
@@ -339,22 +339,22 @@ const char* Element::parse_object(tinyjson::Element* item, const char* value)
     return nullptr;       /* malformed. */
 }
 
-const char* Element::parse_value(tinyjson::Element* item, const char* value)
+const char* element::parse_value(tinyjson::element* item, const char* value)
 {
     if(!value)
         return nullptr; /* Fail on null. */
     if(!strncmp(value, "null", 4)) {
-        item->m_kind = tinyjson::ElementKind::T_NULL;
+        item->m_kind = tinyjson::element_kind::T_NULL;
         return value + 4;
     }
 
     if(!strncmp(value, "false", 5)) {
-        item->m_kind = tinyjson::ElementKind::T_FALSE;
+        item->m_kind = tinyjson::element_kind::T_FALSE;
         return value + 5;
     }
 
     if(!strncmp(value, "true", 4)) {
-        item->m_kind = tinyjson::ElementKind::T_TRUE;
+        item->m_kind = tinyjson::element_kind::T_TRUE;
         return value + 4;
     }
 
@@ -377,14 +377,14 @@ const char* Element::parse_value(tinyjson::Element* item, const char* value)
     return nullptr; /* failure. */
 }
 
-void Element::index_elements()
+void element::index_elements()
 {
     if(!m_children.empty()) {
         m_elements_map.reserve(m_children.size());
         for(auto& child : m_children) {
             if(child.property_name()) {
                 m_elements_map.emplace(
-                    std::make_pair<std::string_view, Element*>(std::string_view(child.property_name()), &child));
+                    std::make_pair<std::string_view, element*>(std::string_view(child.property_name()), &child));
             }
         }
     }
@@ -394,21 +394,21 @@ void Element::index_elements()
     }
 }
 
-bool Element::create_array(Element* arr)
+bool element::create_array(element* arr)
 {
-    arr->m_kind = ElementKind::T_ARRAY;
+    arr->m_kind = element_kind::T_ARRAY;
     return true;
 }
 
-bool Element::create_object(Element* obj)
+bool element::create_object(element* obj)
 {
-    obj->m_kind = ElementKind::T_OBJECT;
+    obj->m_kind = element_kind::T_OBJECT;
     return true;
 }
 
-bool Element::parse(const std::string& content, Element* root)
+bool element::parse(const std::string& content, element* root)
 {
-    if(!Element::parse_value(root, skip(content.c_str()))) {
+    if(!element::parse_value(root, skip(content.c_str()))) {
         return false;
     }
 
@@ -417,7 +417,7 @@ bool Element::parse(const std::string& content, Element* root)
     return true;
 }
 
-bool Element::parse_file(const std::string& path, Element* root)
+bool element::parse_file(const std::string& path, element* root)
 {
     // read the file content
     std::string content;
@@ -447,9 +447,9 @@ bool Element::parse_file(const std::string& path, Element* root)
     return parse(content, root);
 }
 
-thread_local Element null_element;
+thread_local element null_element;
 
-const Element& Element::operator[](const char* index) const
+const element& element::operator[](const char* index) const
 {
     auto key = std::string_view(index);
     if(m_elements_map.count(key) == 0) {
@@ -458,7 +458,7 @@ const Element& Element::operator[](const char* index) const
     return *m_elements_map.find(key)->second;
 }
 
-Element& Element::operator[](const char* index)
+element& element::operator[](const char* index)
 {
     auto key = std::string_view(index);
     if(m_elements_map.count(key) == 0) {
@@ -468,7 +468,7 @@ Element& Element::operator[](const char* index)
     return elem;
 }
 
-const Element& Element::operator[](size_t index) const
+const element& element::operator[](size_t index) const
 {
     if(index >= m_children.size()) {
         return null_element;
@@ -476,7 +476,7 @@ const Element& Element::operator[](size_t index) const
     return m_children[index];
 }
 
-Element& Element::operator[](size_t index)
+element& element::operator[](size_t index)
 {
     if(index >= m_children.size()) {
         return null_element;
@@ -484,7 +484,7 @@ Element& Element::operator[](size_t index)
     return m_children[index];
 }
 
-Element& Element::add_property_internal(const std::string& name)
+element& element::add_property_internal(const std::string& name)
 {
     auto& elem = append_new();
     elem.m_property_name = name;
@@ -496,7 +496,7 @@ Element& Element::add_property_internal(const std::string& name)
     return elem;
 }
 
-Element& Element::add_element(Element&& elem)
+element& element::add_element(element&& elem)
 {
     m_children.emplace_back(std::move(elem));
     auto& item_added = m_children.back();
@@ -506,114 +506,114 @@ Element& Element::add_element(Element&& elem)
     return item_added;
 }
 
-Element& Element::add_array(const std::string& name)
+element& element::add_array(const std::string& name)
 {
-    Element arr;
+    element arr;
     create_array(&arr);
     arr.m_property_name = name;
     return add_element(std::move(arr));
 }
 
-Element& Element::add_object(const std::string& name)
+element& element::add_object(const std::string& name)
 {
-    Element obj;
+    element obj;
     create_object(&obj);
     obj.m_property_name = name;
     return add_element(std::move(obj));
 }
 
-Element& Element::add_property(const std::string& name, int value)
+element& element::add_property(const std::string& name, int value)
 {
     return add_property(name, static_cast<double>(value));
 }
 
-Element& Element::add_property(const std::string& name, long value)
+element& element::add_property(const std::string& name, long value)
 {
     return add_property(name, static_cast<double>(value));
 }
 
-Element& Element::add_property(const std::string& name, size_t value)
+element& element::add_property(const std::string& name, size_t value)
 {
     return add_property(name, static_cast<double>(value));
 }
 
-Element& Element::add_property(const std::string& name, double value)
+element& element::add_property(const std::string& name, double value)
 {
     auto& elem = add_property_internal(name);
     elem.m_value.number = value;
-    elem.m_kind = ElementKind::T_NUMBER;
+    elem.m_kind = element_kind::T_NUMBER;
     return *this;
 }
 
-Element& Element::add_property(const std::string& name, const std::string& value)
+element& element::add_property(const std::string& name, const std::string& value)
 {
     auto& elem = add_property_internal(name);
     elem.m_value.str = strdup(value.c_str());
-    elem.m_kind = ElementKind::T_STRING;
+    elem.m_kind = element_kind::T_STRING;
     return *this;
 }
 
-Element& Element::add_property(const std::string& name, const char* value)
+element& element::add_property(const std::string& name, const char* value)
 {
     auto& elem = add_property_internal(name);
     elem.m_value.str = strdup(value);
-    elem.m_kind = ElementKind::T_STRING;
+    elem.m_kind = element_kind::T_STRING;
     return *this;
 }
 
-Element& Element::add_property(const std::string& name, bool b)
+element& element::add_property(const std::string& name, bool b)
 {
     auto& elem = add_property_internal(name);
     elem.m_value.boolean = b;
-    elem.m_kind = b ? ElementKind::T_TRUE : ElementKind::T_FALSE;
+    elem.m_kind = b ? element_kind::T_TRUE : element_kind::T_FALSE;
     return *this;
 }
 
-Element& Element::add_property_null(const std::string& name)
+element& element::add_property_null(const std::string& name)
 {
     auto& elem = add_property_internal(name);
-    elem.m_kind = ElementKind::T_NULL;
+    elem.m_kind = element_kind::T_NULL;
     return *this;
 }
 
-Element& Element::add_array_item(const std::string& value)
+element& element::add_array_item(const std::string& value)
 {
     auto& elem = add_property_internal("");
-    elem.m_kind = ElementKind::T_STRING;
+    elem.m_kind = element_kind::T_STRING;
     elem.m_value.str = strdup(value.c_str());
     return *this;
 }
 
-Element& Element::add_array_item(const char* value)
+element& element::add_array_item(const char* value)
 {
     auto& elem = add_property_internal("");
-    elem.m_kind = ElementKind::T_STRING;
+    elem.m_kind = element_kind::T_STRING;
     elem.m_value.str = strdup(value);
     return *this;
 }
 
-Element& Element::add_array_item(double value)
+element& element::add_array_item(double value)
 {
     auto& elem = add_property_internal("");
-    elem.m_kind = ElementKind::T_NUMBER;
+    elem.m_kind = element_kind::T_NUMBER;
     elem.m_value.number = value;
     return *this;
 }
 
-Element& Element::add_array_item(bool value)
+element& element::add_array_item(bool value)
 {
     auto& elem = add_property_internal("");
-    elem.m_kind = value ? ElementKind::T_TRUE : ElementKind::T_FALSE;
+    elem.m_kind = value ? element_kind::T_TRUE : element_kind::T_FALSE;
     elem.m_value.boolean = value;
     return *this;
 }
 
-Element& Element::add_array_item(Element elem) { return add_element(std::move(elem)); }
+element& element::add_array_item(element elem) { return add_element(std::move(elem)); }
 
-Element& Element::add_array_object()
+element& element::add_array_object()
 {
     auto& elem = append_new();
-    elem.m_kind = ElementKind::T_OBJECT;
+    elem.m_kind = element_kind::T_OBJECT;
     return elem;
 }
 } // namespace tinyjson

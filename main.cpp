@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 
     std::string lexers_json_file = argv[1];
 
-    tinyjson::Element root;
+    tinyjson::element root;
     std::cout << "reading file..." << std::endl;
     std::string content;
     get_file_contents(lexers_json_file.c_str(), &content);
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
     std::cout << "json file size: " << content.length() / 1024 / 1024 << "MiB" << std::endl;
     std::cout << "parsing..." << std::endl;
-    if(!tinyjson::Element::parse(content.c_str(), &root)) {
+    if(!tinyjson::element::parse(content.c_str(), &root)) {
         return 1;
     }
     std::cout << "success" << std::endl;
@@ -88,8 +88,8 @@ int main(int argc, char** argv)
 
     // build JSON
     std::cout << "Building lexer JSON" << std::endl;
-    tinyjson::Element writer;
-    tinyjson::Element::create_object(&writer);
+    tinyjson::element writer;
+    tinyjson::element::create_object(&writer);
 
     auto& lexers_array = writer.add_array("lexers");
 
