@@ -23,10 +23,13 @@ make -j10
 std::string file_content = read_file("/path/to/file.json");
 
 // parse it
-tinyjson::Element root;
-if(!tinyjson::Element::parse(file_content.c_str(), &root)) {
+tinyjson::element root;
+if(!tinyjson::parse(file_content.c_str(), &root)) {
     exit(EXIT_FAILURE);
 }
+
+// Or we could parse the file directly:
+// tinyjson::parse_file("/path/to/file.json", &root);
 
 // accessing elements
 // if root was an array, we can access the elements using [] access which is `O(1)`
@@ -59,8 +62,8 @@ root[0]["name"].as_str(&name);
 //      }
 //  ]
 ///
-tinyjson::Element arr;
-tinyjson::Element::create_array(&arr);
+tinyjson::element arr;
+tinyjson::element::create_array(&arr);
 arr.add_array_object()
     .add_property("name", "tinyjson")
     .add_property("author", "Eran Ifrah");

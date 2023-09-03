@@ -344,6 +344,12 @@ public:
 
 FLATTEN_INLINE void to_string(const element& root, std::stringstream& ss) { root.to_string(ss, 0, true); }
 
+/// For convenience. Same as calling `tinyjson::element::parse`
+FLATTEN_INLINE bool parse(const std::string& content, element* root) { return element::parse(content, root); }
+
+/// For convenience. Same as calling `tinyjson::element::parse_file`
+FLATTEN_INLINE bool parse_file(const std::string& content, element* root) { return element::parse_file(content, root); }
+
 } // namespace tinyjson
 
 #endif // JSON_LITE_HPP
