@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.2)
 set(ENV{CC} clang)
 set(ENV{CXX} clang++)
 

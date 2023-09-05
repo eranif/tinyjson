@@ -198,6 +198,7 @@ element::element() { memset(&m_value, 0, sizeof(m_value)); }
 element::element(element&& other)
 {
     m_kind = other.m_kind;
+    m_elements_map.clear();
     m_property_name = std::move(other.m_property_name);
     m_value = other.m_value;
     if(other.m_kind == element_kind::T_STRING) {
@@ -451,20 +452,18 @@ thread_local element null_element;
 
 const element& element::operator[](const char* index) const
 {
-    auto key = std::string_view(index);
-    if(m_elements_map.count(key) == 0) {
+    if(m_elements_map.count(index) == 0) {
         return null_element;
     }
-    return *m_elements_map.find(key)->second;
+    return *m_elements_map.find(index)->second;
 }
 
 element& element::operator[](const char* index)
 {
-    auto key = std::string_view(index);
-    if(m_elements_map.count(key) == 0) {
+    if(m_elements_map.count(index) == 0) {
         return null_element;
     }
-    auto& elem = *m_elements_map.find(key)->second;
+    auto& elem = *m_elements_map.find(index)->second;
     return elem;
 }
 
@@ -491,7 +490,7 @@ element& element::add_property_internal(const std::string& name)
 
     // add new indexed entry
     if(elem.property_name()) {
-        m_elements_map.insert({ std::string_view(elem.property_name()), &elem });
+        m_elements_map.insert({ elem.property_name(), &elem });
     }
     return elem;
 }
@@ -501,7 +500,7 @@ element& element::add_element(element&& elem)
     m_children.emplace_back(std::move(elem));
     auto& item_added = m_children.back();
     if(item_added.property_name()) {
-        m_elements_map.insert({ std::string_view(item_added.property_name()), &item_added });
+        m_elements_map.insert({ item_added.property_name(), &item_added });
     }
     return item_added;
 }

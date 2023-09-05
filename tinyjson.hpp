@@ -34,7 +34,7 @@ private:
     /// list of all children
     std::vector<element> m_children;
     /// provide `O(1)` access for elements by name
-    std::unordered_map<std::string_view, element*> m_elements_map;
+    std::unordered_map<std::string, element*> m_elements_map;
 
 private:
     static const char* parse_string(tinyjson::element* item, const char* str);
@@ -49,7 +49,8 @@ private:
     /// append new item to the end of the children list and return a reference to it
     FLATTEN_INLINE element& append_new()
     {
-        m_children.emplace_back(element{});
+        element new_elem;
+        m_children.push_back(std::move(new_elem));
         return m_children.back();
     }
 
@@ -198,12 +199,9 @@ public:
         m_elements_map.clear();
     }
     /// return true if this Element contains a child with a given name
-    FLATTEN_INLINE bool contains(const char* name) const { return m_elements_map.count(std::string_view(name)) > 0; }
+    FLATTEN_INLINE bool contains(const char* name) const { return m_elements_map.count(name) > 0; }
     /// return true if this Element contains a child with a given name
-    FLATTEN_INLINE bool contains(const std::string& name) const
-    {
-        return m_elements_map.count(std::string_view(name)) > 0;
-    }
+    FLATTEN_INLINE bool contains(const std::string& name) const { return m_elements_map.count(name) > 0; }
 
     // write API
 
