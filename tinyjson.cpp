@@ -384,14 +384,9 @@ void element::index_elements()
         m_elements_map.reserve(m_children.size());
         for(auto& child : m_children) {
             if(child.property_name()) {
-                m_elements_map.emplace(
-                    std::make_pair<std::string_view, element*>(std::string_view(child.property_name()), &child));
+                m_elements_map.emplace(std::make_pair(child.property_name(), &child));
             }
         }
-    }
-
-    for(auto& child : m_children) {
-        child.index_elements();
     }
 }
 
@@ -412,9 +407,6 @@ bool element::parse(const std::string& content, element* root)
     if(!element::parse_value(root, skip(content.c_str()))) {
         return false;
     }
-
-    // index the elements
-    root->index_elements();
     return true;
 }
 
@@ -452,6 +444,15 @@ thread_local element null_element;
 
 const element& element::operator[](const char* index) const
 {
+    if(m_children.empty()) {
+        return null_element;
+    }
+
+    if(m_elements_map.empty()) {
+        // need to index it first
+        const_cast<element&>(*this).index_elements();
+    }
+
     if(m_elements_map.count(index) == 0) {
         return null_element;
     }
@@ -460,6 +461,15 @@ const element& element::operator[](const char* index) const
 
 element& element::operator[](const char* index)
 {
+    if(m_children.empty()) {
+        return null_element;
+    }
+
+    if(m_elements_map.empty()) {
+        // need to index it first
+        const_cast<element&>(*this).index_elements();
+    }
+
     if(m_elements_map.count(index) == 0) {
         return null_element;
     }
@@ -615,4 +625,19 @@ element& element::add_array_object()
     elem.m_kind = element_kind::T_OBJECT;
     return elem;
 }
+
+bool element::contains(const char* name) const
+{
+    if(m_children.empty()) {
+        return false;
+    }
+    if(m_elements_map.empty()) {
+        // need to index it first
+        const_cast<element&>(*this).index_elements();
+    }
+    return m_elements_map.count(std::string(name)) > 0;
+}
+
+bool element::contains(const std::string& name) const { return contains(name.c_str()); }
+
 } // namespace tinyjson

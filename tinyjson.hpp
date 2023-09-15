@@ -199,9 +199,9 @@ public:
         m_elements_map.clear();
     }
     /// return true if this Element contains a child with a given name
-    FLATTEN_INLINE bool contains(const char* name) const { return m_elements_map.count(name) > 0; }
+    FLATTEN_INLINE bool contains(const char* name) const;
     /// return true if this Element contains a child with a given name
-    FLATTEN_INLINE bool contains(const std::string& name) const { return m_elements_map.count(name) > 0; }
+    FLATTEN_INLINE bool contains(const std::string& name) const;
 
     // write API
 
@@ -306,11 +306,9 @@ public:
         } break;
         case element_kind::T_FALSE: {
             ss << "false" << suffix(last_child);
-            ;
         } break;
         case element_kind::T_NULL: {
             ss << "null" << suffix(last_child);
-            ;
         } break;
         case element_kind::T_OBJECT: {
             if(m_children.empty()) {
