@@ -54,12 +54,12 @@ private:
         return m_children.back();
     }
 
-    FLATTEN_INLINE const char* suffix(bool is_last) const
+    FLATTEN_INLINE const char* suffix(bool is_last, bool pretty) const
     {
         if(is_last) {
-            return "\n";
+            return pretty ? "\n" : "";
         } else {
-            return ",\n";
+            return pretty ? ",\n" : ",";
         }
     }
 
@@ -281,12 +281,17 @@ public:
         return m_property_name.c_str();
     }
 
-    FLATTEN_INLINE void to_string(std::stringstream& ss, int depth, bool last_child) const
+    FLATTEN_INLINE void to_string(std::stringstream& ss, int depth, bool last_child, bool pretty) const
     {
         std::string indent(depth, ' ');
+        if(!pretty) {
+            indent.clear();
+        }
+
+        const std::string NEW_LINE = pretty ? "\n" : "";
         ss << indent;
         if(property_name()) {
-            ss << "\"" << property_name() << "\": ";
+            ss << "\"" << property_name() << "\":" << (pretty ? " " : "");
         }
 
         switch(m_kind) {
@@ -294,43 +299,43 @@ public:
             std::string_view sv;
             as_str(&sv);
             std::string escaped_str;
-            ss << escape_string(sv, &escaped_str) << suffix(last_child);
+            ss << escape_string(sv, &escaped_str) << suffix(last_child, pretty);
         } break;
         case element_kind::T_NUMBER: {
             double d;
             as_number(&d);
-            ss << d << suffix(last_child);
+            ss << d << suffix(last_child, pretty);
         } break;
         case element_kind::T_TRUE: {
-            ss << "true" << suffix(last_child);
+            ss << "true" << suffix(last_child, pretty);
         } break;
         case element_kind::T_FALSE: {
-            ss << "false" << suffix(last_child);
+            ss << "false" << suffix(last_child, pretty);
         } break;
         case element_kind::T_NULL: {
-            ss << "null" << suffix(last_child);
+            ss << "null" << suffix(last_child, pretty);
         } break;
         case element_kind::T_OBJECT: {
             if(m_children.empty()) {
-                ss << "{}" << suffix(last_child);
+                ss << "{}" << suffix(last_child, pretty);
             }
-            ss << "{\n";
+            ss << "{" << NEW_LINE;
             for(size_t i = 0; i < m_children.size(); ++i) {
                 bool is_last = i == m_children.size() - 1;
-                m_children[i].to_string(ss, depth + 1, is_last);
+                m_children[i].to_string(ss, depth + 1, is_last, pretty);
             }
-            ss << indent << "}" << suffix(last_child);
+            ss << indent << "}" << suffix(last_child, pretty);
         } break;
         case element_kind::T_ARRAY: {
             if(m_children.empty()) {
-                ss << "[]" << suffix(last_child);
+                ss << "[]" << suffix(last_child, pretty);
             }
-            ss << "[\n";
+            ss << "[" << NEW_LINE;
             for(size_t i = 0; i < m_children.size(); ++i) {
                 bool is_last = i == m_children.size() - 1;
-                m_children[i].to_string(ss, depth + 1, is_last);
+                m_children[i].to_string(ss, depth + 1, is_last, pretty);
             }
-            ss << indent << "]" << suffix(last_child);
+            ss << indent << "]" << suffix(last_child, pretty);
         } break;
         case element_kind::T_INVALID:
             break;
@@ -338,7 +343,10 @@ public:
     }
 };
 
-FLATTEN_INLINE void to_string(const element& root, std::stringstream& ss) { root.to_string(ss, 0, true); }
+FLATTEN_INLINE void to_string(const element& root, std::stringstream& ss, bool pretty = true)
+{
+    root.to_string(ss, 0, true, pretty);
+}
 
 /// For convenience. Same as calling `tinyjson::element::parse`
 FLATTEN_INLINE bool parse(const std::string& content, element* root) { return element::parse(content, root); }

@@ -105,7 +105,7 @@ int main(int argc, char** argv)
     size_t index = 0;
     for(const auto& lexer : lexers_array) {
         std::stringstream s;
-        tinyjson::to_string(lexer, s);
+        tinyjson::to_string(lexer, s, false);
         std::cout << "printing lexer " << index << ":" << std::endl;
         std::cout << s.str() << std::endl;
         ++index;
