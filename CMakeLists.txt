@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.2)
-set(ENV{CC} clang)
-set(ENV{CXX} clang++)
+
+if(ASAN_BUILD)
+    set(ENV{CC} clang)
+    set(ENV{CXX} clang++)
+    message(STATUS "Using clang toolchain")
+endif()
 
 project(tinyjson)
 
@@ -8,8 +12,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(ASAN_BUILD)
     # build with ASAN for our all of our targets
+    message(STATUS "Enabling ASAN checks")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address -O0")
     set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address -O0")
 endif()
