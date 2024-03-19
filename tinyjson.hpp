@@ -199,9 +199,9 @@ public:
         m_elements_map.clear();
     }
     /// return true if this Element contains a child with a given name
-    FLATTEN_INLINE bool contains(const char* name) const;
+    bool contains(const char* name) const;
     /// return true if this Element contains a child with a given name
-    FLATTEN_INLINE bool contains(const std::string& name) const;
+    bool contains(const std::string& name) const;
 
     // write API
 
