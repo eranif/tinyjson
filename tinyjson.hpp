@@ -329,13 +329,14 @@ public:
         case element_kind::T_ARRAY: {
             if(m_children.empty()) {
                 ss << "[]" << suffix(last_child, pretty);
+            } else {
+                ss << "[" << NEW_LINE;
+                for(size_t i = 0; i < m_children.size(); ++i) {
+                    bool is_last = i == m_children.size() - 1;
+                    m_children[i].to_string(ss, depth + 1, is_last, pretty);
+                }
+                ss << indent << "]" << suffix(last_child, pretty);
             }
-            ss << "[" << NEW_LINE;
-            for(size_t i = 0; i < m_children.size(); ++i) {
-                bool is_last = i == m_children.size() - 1;
-                m_children[i].to_string(ss, depth + 1, is_last, pretty);
-            }
-            ss << indent << "]" << suffix(last_child, pretty);
         } break;
         case element_kind::T_INVALID:
             break;
