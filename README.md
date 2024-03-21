@@ -68,7 +68,9 @@ arr.add_array_object()
     .add_property("name", "tinyjson")
     .add_property("author", "Eran Ifrah");
 
-// format it to string
+// Format it to string
+// You can write to file as well using
+// std::ofstream instead of stringstream
 std::stringstream ss;
 tinyjson::to_string(arr, ss);
 std::cout << ss.str() << std::endl;
