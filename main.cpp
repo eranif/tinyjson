@@ -14,7 +14,7 @@ void get_file_contents(const char* filename, std::string* content)
     // Open the file in read mode.
     FILE* file = fopen(filename, "rb");
     // Check if there was an error.
-    if(file == NULL) {
+    if (file == NULL) {
         std::cerr << "Error: Can't open file: " << filename << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -33,7 +33,7 @@ void get_file_contents(const char* filename, std::string* content)
 
 int main(int argc, char** argv)
 {
-    if(argc < 2) {
+    if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " </path/to/lexers.json>" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -42,47 +42,26 @@ int main(int argc, char** argv)
 
     tinyjson::element root;
     std::cout << "reading file..." << std::endl;
-    std::string content;
-    get_file_contents(lexers_json_file.c_str(), &content);
-    std::cout << "success" << std::endl;
-
-    std::cout << "json file size: " << content.length() / 1024 / 1024 << "MiB" << std::endl;
     std::cout << "parsing..." << std::endl;
-    if(!tinyjson::element::parse(content.c_str(), &root)) {
+    if (!tinyjson::element::parse_file(lexers_json_file.c_str(), &root)) {
         return 1;
     }
+
     std::cout << "success" << std::endl;
-    std::stringstream ss;
-    if(root.is_array()) {
+    // std::stringstream ss;
+    std::ofstream ss(L"lexer.output.json", std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
+    if (!ss.is_open()) {
+        std::cerr << "failed to open output file" << std::endl;
+        exit(1);
+    }
+    if (root.is_array()) {
         std::cout << "read " << root.size() << " lexers" << std::endl;
-        //        for(size_t i = 0; i < root.size(); ++i) {
-        //            auto lexer = root[i];
-        //            std::string_view lexer_name;
-        //            {
-        //                auto prop = lexer["Name"];
-        //                if(prop.as_str(&lexer_name)) {
-        //                    //std::cout << lexer_name << std::endl;
-        //                }
-        //            }
-        //            {
-        //                auto prop = lexer["Name"];
-        //                if(prop.as_str(&lexer_name)) {
-        //                    //std::cout << lexer_name << std::endl;
-        //                }
-        //            }
-        //
-        //            {
-        //                auto prop = lexer["Name"];
-        //                if(prop.as_str(&lexer_name)) {
-        //                    //std::cout << lexer_name << std::endl;
-        //                }
-        //            }
-        //        }
     }
 
     std::cout << "calling to_string" << std::endl;
     tinyjson::to_string(root, ss);
     std::cout << "success" << std::endl;
+    ss.close();
 
     // std::cout << ss.str() << std::endl;
 
@@ -103,7 +82,7 @@ int main(int argc, char** argv)
 
     // loop and print each lexer
     size_t index = 0;
-    for(const auto& lexer : lexers_array) {
+    for (const auto& lexer : lexers_array) {
         std::stringstream s;
         tinyjson::to_string(lexer, s, false);
         std::cout << "printing lexer " << index << ":" << std::endl;

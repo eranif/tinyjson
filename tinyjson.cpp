@@ -13,7 +13,7 @@ namespace tinyjson
 /* Utility to jump whitespace and cr/lf */
 const char* skip(const char* in)
 {
-    while(in && *in && (unsigned char)*in <= 32)
+    while (in && *in && (unsigned char)*in <= 32)
         in++;
     return in;
 }
@@ -29,15 +29,15 @@ std::string& escape_string(const std::string_view& str, std::string* escaped)
     int len = 0;
     unsigned char token;
 
-    if(str.empty()) {
+    if (str.empty()) {
         return *escaped;
     }
 
     ptr = str.data();
-    while((token = *ptr) && ++len) {
-        if(strchr("\"\\\b\f\n\r\t", token))
+    while ((token = *ptr) && ++len) {
+        if (strchr("\"\\\b\f\n\r\t", token))
             len++;
-        else if(token < 32)
+        else if (token < 32)
             len += 5;
         ptr++;
     }
@@ -48,12 +48,12 @@ std::string& escape_string(const std::string_view& str, std::string* escaped)
     ptr2 = out;
     ptr = str.data();
     *ptr2++ = '\"';
-    while(*ptr) {
-        if((unsigned char)*ptr > 31 && *ptr != '\"' && *ptr != '\\')
+    while (*ptr) {
+        if ((unsigned char)*ptr > 31 && *ptr != '\"' && *ptr != '\\')
             *ptr2++ = *ptr++;
         else {
             *ptr2++ = '\\';
-            switch(token = *ptr++) {
+            switch (token = *ptr++) {
             case '\\':
                 *ptr2++ = '\\';
                 break;
@@ -92,24 +92,24 @@ const char* element::parse_string(tinyjson::element* item, const char* str)
     char* ptr2;
     int len = 0;
     unsigned uc, uc2;
-    if(*str != '\"') {
+    if (*str != '\"') {
         return nullptr;
     } /* not a string! */
 
-    while(*ptr != '\"' && *ptr && ++len)
-        if(*ptr++ == '\\')
+    while (*ptr != '\"' && *ptr && ++len)
+        if (*ptr++ == '\\')
             ptr++; /* Skip escaped quotes. */
 
     char* out = (char*)malloc(len + 1);
     ptr = str + 1;
     ptr2 = out;
 
-    while(*ptr != '\"' && *ptr) {
-        if(*ptr != '\\')
+    while (*ptr != '\"' && *ptr) {
+        if (*ptr != '\\')
             *ptr2++ = *ptr++;
         else {
             ptr++;
-            switch(*ptr) {
+            switch (*ptr) {
             case 'b':
                 *ptr2++ = '\b';
                 break;
@@ -129,30 +129,30 @@ const char* element::parse_string(tinyjson::element* item, const char* str)
                 sscanf(ptr + 1, "%4x", &uc);
                 ptr += 4; /* get the unicode char. */
 
-                if((uc >= 0xDC00 && uc <= 0xDFFF) || uc == 0)
+                if ((uc >= 0xDC00 && uc <= 0xDFFF) || uc == 0)
                     break; // check for invalid.
 
-                if(uc >= 0xD800 && uc <= 0xDBFF) // UTF16 surrogate pairs.
+                if (uc >= 0xD800 && uc <= 0xDBFF) // UTF16 surrogate pairs.
                 {
-                    if(ptr[1] != '\\' || ptr[2] != 'u')
+                    if (ptr[1] != '\\' || ptr[2] != 'u')
                         break; // missing second-half of surrogate.
                     sscanf(ptr + 3, "%4x", &uc2);
                     ptr += 6;
-                    if(uc2 < 0xDC00 || uc2 > 0xDFFF)
+                    if (uc2 < 0xDC00 || uc2 > 0xDFFF)
                         break; // invalid second-half of surrogate.
                     uc = 0x10000 | ((uc & 0x3FF) << 10) | (uc2 & 0x3FF);
                 }
 
                 len = 4;
-                if(uc < 0x80)
+                if (uc < 0x80)
                     len = 1;
-                else if(uc < 0x800)
+                else if (uc < 0x800)
                     len = 2;
-                else if(uc < 0x10000)
+                else if (uc < 0x10000)
                     len = 3;
                 ptr2 += len;
 
-                switch(len) {
+                switch (len) {
                 case 4:
                     *--ptr2 = ((uc | 0x80) & 0xBF);
                     uc >>= 6;
@@ -175,7 +175,7 @@ const char* element::parse_string(tinyjson::element* item, const char* str)
         }
     }
     *ptr2 = 0;
-    if(*ptr == '\"')
+    if (*ptr == '\"')
         ptr++;
 
     item->m_value.str = out;
@@ -188,7 +188,7 @@ element::~element()
     m_elements_map.clear();
     m_children.clear();
 
-    if(m_kind == element_kind::T_STRING && m_value.str) {
+    if (m_kind == element_kind::T_STRING && m_value.str) {
         free(m_value.str);
         m_value.str = nullptr;
     }
@@ -201,7 +201,7 @@ element::element(element&& other)
     m_elements_map.clear();
     m_property_name = std::move(other.m_property_name);
     m_value = other.m_value;
-    if(other.m_kind == element_kind::T_STRING) {
+    if (other.m_kind == element_kind::T_STRING) {
         // ensure that no double free is occured
         other.m_value.str = nullptr;
     }
@@ -216,28 +216,28 @@ const char* element::parse_number(tinyjson::element* item, const char* num)
     int subscale = 0, signsubscale = 1;
 
     /* Could use sscanf for this? */
-    if(*num == '-')
+    if (*num == '-')
         sign = -1, num++; /* Has sign? */
-    if(*num == '0')
+    if (*num == '0')
         num++; /* is zero */
-    if(*num >= '1' && *num <= '9')
+    if (*num >= '1' && *num <= '9')
         do
             n = (n * 10.0) + (*num++ - '0');
-        while(*num >= '0' && *num <= '9'); /* Number? */
-    if(*num == '.' && num[1] >= '0' && num[1] <= '9') {
+        while (*num >= '0' && *num <= '9'); /* Number? */
+    if (*num == '.' && num[1] >= '0' && num[1] <= '9') {
         num++;
         do
             n = (n * 10.0) + (*num++ - '0'), scale--;
-        while(*num >= '0' && *num <= '9');
-    }                              /* Fractional part? */
-    if(*num == 'e' || *num == 'E') /* Exponent? */
+        while (*num >= '0' && *num <= '9');
+    }                               /* Fractional part? */
+    if (*num == 'e' || *num == 'E') /* Exponent? */
     {
         num++;
-        if(*num == '+')
+        if (*num == '+')
             num++;
-        else if(*num == '-')
+        else if (*num == '-')
             signsubscale = -1, num++; /* With sign? */
-        while(*num >= '0' && *num <= '9')
+        while (*num >= '0' && *num <= '9')
             subscale = (subscale * 10) + (*num++ - '0'); /* Number? */
     }
 
@@ -251,29 +251,29 @@ const char* element::parse_number(tinyjson::element* item, const char* num)
 /* Build an array from input text. */
 const char* element::parse_array(tinyjson::element* item, const char* value)
 {
-    if(*value != '[') {
+    if (*value != '[') {
         return nullptr;
     } /* not an array! */
 
     item->m_kind = tinyjson::element_kind::T_ARRAY;
     value = skip(value + 1);
-    if(*value == ']')
+    if (*value == ']')
         return value + 1; /* empty array. */
 
     auto& child = item->append_new();
 
     value = skip(parse_value(&child, skip(value))); /* skip any spacing, get the value. */
-    if(!value)
+    if (!value)
         return nullptr;
 
-    while(*value == ',') {
+    while (*value == ',') {
         auto& child = item->append_new();
         value = skip(parse_value(&child, skip(value + 1)));
-        if(!value)
+        if (!value)
             return nullptr; /* memory fail */
     }
 
-    if(*value == ']')
+    if (*value == ']')
         return value + 1; /* end of array */
 
     return nullptr; /* malformed. */
@@ -282,19 +282,19 @@ const char* element::parse_array(tinyjson::element* item, const char* value)
 /* Build an object from the text. */
 const char* element::parse_object(tinyjson::element* item, const char* value)
 {
-    if(*value != '{') {
+    if (*value != '{') {
         return nullptr;
     } // not an object
 
     item->m_kind = tinyjson::element_kind::T_OBJECT;
     value = skip(value + 1);
-    if(*value == '}')
+    if (*value == '}')
         return value + 1; // empty object
 
     auto& child = item->append_new();
     value = skip(parse_string(&child, skip(value)));
 
-    if(!value) {
+    if (!value) {
         return nullptr;
     }
 
@@ -303,75 +303,75 @@ const char* element::parse_object(tinyjson::element* item, const char* value)
     free(child.m_value.str);
     child.m_value.str = nullptr;
 
-    if(*value != ':') {
+    if (*value != ':') {
         // parse error
         return nullptr;
     }
 
     // parse the property value
     value = skip(parse_value(&child, skip(value + 1))); /* skip any spacing, get the value. */
-    if(!value)
+    if (!value)
         return nullptr;
 
-    while(*value == ',') {
+    while (*value == ',') {
         auto& child = item->append_new();
         value = skip(parse_string(&child, skip(value + 1)));
 
-        if(!value) {
+        if (!value) {
             return nullptr;
         }
 
         child.m_property_name = child.m_value.str;
         free(child.m_value.str);
         child.m_value.str = nullptr;
-        if(*value != ':') {
+        if (*value != ':') {
             // parse error
             return nullptr;
         }
 
         // parse the property value
         value = skip(parse_value(&child, skip(value + 1))); /* skip any spacing, get the value. */
-        if(!value)
+        if (!value)
             return nullptr;
     }
 
-    if(*value == '}')
+    if (*value == '}')
         return value + 1; /* end of array */
     return nullptr;       /* malformed. */
 }
 
 const char* element::parse_value(tinyjson::element* item, const char* value)
 {
-    if(!value)
+    if (!value)
         return nullptr; /* Fail on null. */
-    if(!strncmp(value, "null", 4)) {
+    if (!strncmp(value, "null", 4)) {
         item->m_kind = tinyjson::element_kind::T_NULL;
         return value + 4;
     }
 
-    if(!strncmp(value, "false", 5)) {
+    if (!strncmp(value, "false", 5)) {
         item->m_kind = tinyjson::element_kind::T_FALSE;
         return value + 5;
     }
 
-    if(!strncmp(value, "true", 4)) {
+    if (!strncmp(value, "true", 4)) {
         item->m_kind = tinyjson::element_kind::T_TRUE;
         return value + 4;
     }
 
-    if(*value == '\"') {
+    if (*value == '\"') {
         return parse_string(item, value);
     }
 
-    if(*value == '-' || (*value >= '0' && *value <= '9')) {
+    if (*value == '-' || (*value >= '0' && *value <= '9')) {
         return parse_number(item, value);
     }
 
-    if(*value == '[') {
+    if (*value == '[') {
         return parse_array(item, value);
     }
 
-    if(*value == '{') {
+    if (*value == '{') {
         return parse_object(item, value);
     }
 
@@ -380,10 +380,10 @@ const char* element::parse_value(tinyjson::element* item, const char* value)
 
 void element::index_elements()
 {
-    if(!m_children.empty()) {
+    if (!m_children.empty()) {
         m_elements_map.reserve(m_children.size());
-        for(auto& child : m_children) {
-            if(child.property_name()) {
+        for (auto& child : m_children) {
+            if (child.property_name()) {
                 m_elements_map.emplace(std::make_pair(child.property_name(), &child));
             }
         }
@@ -404,7 +404,7 @@ bool element::create_object(element* obj)
 
 bool element::parse(const std::string& content, element* root)
 {
-    if(!element::parse_value(root, skip(content.c_str()))) {
+    if (!element::parse_value(root, skip(content.c_str()))) {
         return false;
     }
     return true;
@@ -416,7 +416,7 @@ bool element::parse_file(const std::string& path, element* root)
     std::string content;
     FILE* file = fopen(path.c_str(), "rb");
     // Check if there was an error.
-    if(file == nullptr) {
+    if (file == nullptr) {
         return false;
     }
 
@@ -433,7 +433,7 @@ bool element::parse_file(const std::string& path, element* root)
     fclose(file);
 
     // did we read all the file?
-    if(bytes != length) {
+    if (bytes != length) {
         return false;
     }
 
@@ -444,16 +444,16 @@ thread_local element null_element;
 
 const element& element::operator[](const char* index) const
 {
-    if(m_children.empty()) {
+    if (m_children.empty()) {
         return null_element;
     }
 
-    if(m_elements_map.empty()) {
+    if (m_elements_map.empty()) {
         // need to index it first
         const_cast<element&>(*this).index_elements();
     }
 
-    if(m_elements_map.count(index) == 0) {
+    if (m_elements_map.count(index) == 0) {
         return null_element;
     }
     return *m_elements_map.find(index)->second;
@@ -461,16 +461,16 @@ const element& element::operator[](const char* index) const
 
 element& element::operator[](const char* index)
 {
-    if(m_children.empty()) {
+    if (m_children.empty()) {
         return null_element;
     }
 
-    if(m_elements_map.empty()) {
+    if (m_elements_map.empty()) {
         // need to index it first
         const_cast<element&>(*this).index_elements();
     }
 
-    if(m_elements_map.count(index) == 0) {
+    if (m_elements_map.count(index) == 0) {
         return null_element;
     }
     auto& elem = *m_elements_map.find(index)->second;
@@ -479,7 +479,7 @@ element& element::operator[](const char* index)
 
 const element& element::operator[](size_t index) const
 {
-    if(index >= m_children.size()) {
+    if (index >= m_children.size()) {
         return null_element;
     }
     return m_children[index];
@@ -487,7 +487,7 @@ const element& element::operator[](size_t index) const
 
 element& element::operator[](size_t index)
 {
-    if(index >= m_children.size()) {
+    if (index >= m_children.size()) {
         return null_element;
     }
     return m_children[index];
@@ -499,7 +499,7 @@ element& element::add_property_internal(const std::string& name)
     elem.m_property_name = name;
 
     // add new indexed entry
-    if(elem.property_name()) {
+    if (elem.property_name()) {
         m_elements_map.insert({ elem.property_name(), &elem });
     }
     return elem;
@@ -509,7 +509,7 @@ element& element::add_element(element&& elem)
 {
     m_children.emplace_back(std::move(elem));
     auto& item_added = m_children.back();
-    if(item_added.property_name()) {
+    if (item_added.property_name()) {
         m_elements_map.insert({ item_added.property_name(), &item_added });
     }
     return item_added;
@@ -628,10 +628,10 @@ element& element::add_array_object()
 
 bool element::contains(const char* name) const
 {
-    if(m_children.empty()) {
+    if (m_children.empty()) {
         return false;
     }
-    if(m_elements_map.empty()) {
+    if (m_elements_map.empty()) {
         // need to index it first
         const_cast<element&>(*this).index_elements();
     }
